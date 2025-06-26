@@ -38,8 +38,9 @@ if submit_button:
             df.to_excel(ARCHIVO, index=False)
             st.success("✅ Datos guardados correctamente")
 
-            # Refrescar para limpiar campos
-            st.experimental_set_query_params(refrescar="1")
+            # Limpiar campos con query_params + rerun
+            st.query_params.clear()
+            st.rerun()
 
         except ValueError:
             st.error("❌ Monto inválido")
