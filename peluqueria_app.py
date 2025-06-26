@@ -5,8 +5,6 @@ import pytz
 import os
 
 ARCHIVO = "peluqueria.xlsx"
-
-# Zona horaria Buenos Aires
 bsas_tz = pytz.timezone("America/Argentina/Buenos_Aires")
 
 # Crear archivo si no existe
@@ -17,15 +15,23 @@ if not os.path.exists(ARCHIVO):
 # Cargar datos existentes
 df = pd.read_excel(ARCHIVO)
 
+# Convertir la columna "Fecha y hora" a datetime con zona horaria
+df["Fecha y hora"] = pd.to_datetime(df["Fecha y hora"], format="%d/%m/%Y %H:%M:%S")
+df["Fecha y hora"] = df["Fecha y hora"].dt.tz_localize("America/Argentina/Buenos_Aires")
+
 # Título
 st.title("💇‍♀️ Control de pagos - Peluquería")
 st.markdown("Ingresá los datos del cliente:")
 
-# Formulario
+# Inicializar valores del formulario en session_state
+for key in ("cliente", "monto"):
+    if key not in st.session_state:
+        st.session_state[key] = ""
+
 with st.form(key="formulario"):
-    cliente = st.text_input("Cliente")
+    cliente = st.text_input("Cliente", key="cliente")
     forma_pago = st.selectbox("Forma de pago", ["Efectivo", "Transferencia"])
-    monto = st.text_input("Monto ($)")
+    monto = st.text_input("Monto ($)", key="monto")
     submit_button = st.form_submit_button(label="Guardar")
 
 if submit_button:
@@ -33,7 +39,7 @@ if submit_button:
         try:
             monto_valor = float(monto)
             ahora_bsas = datetime.now(bsas_tz)
-            fecha_str = ahora_bsas.strftime("%d/%m/%Y %H:%M:%S")  # día/mes/año hh:mm:ss
+            fecha_str = ahora_bsas.strftime("%d/%m/%Y %H:%M:%S")
 
             nueva_fila = {
                 "Fecha y hora": fecha_str,
@@ -45,19 +51,17 @@ if submit_button:
             df.to_excel(ARCHIVO, index=False)
             st.success("✅ Datos guardados correctamente")
 
-            # Limpiar campos
-            st.experimental_set_query_params()
-            st.experimental_rerun()
+            # Limpiar campos en session_state
+            st.session_state["cliente"] = ""
+            st.session_state["monto"] = ""
+
+            # Opcional: refrescar la app para que se note el cambio
+            # st.experimental_rerun()
 
         except ValueError:
             st.error("❌ Monto inválido")
     else:
         st.error("❌ Completá todos los campos")
-
-# Convertir la columna a datetime usando formato y zona horaria
-
-df["Fecha y hora"] = pd.to_datetime(df["Fecha y hora"], format="%d/%m/%Y %H:%M:%S")
-df["Fecha y hora"] = df["Fecha y hora"].dt.tz_localize("America/Argentina/Buenos_Aires")
 
 hoy_bsas = datetime.now(bsas_tz).date()
 mes_actual_bsas = datetime.now(bsas_tz).month
@@ -81,7 +85,7 @@ if not df_hoy.empty:
     with open(cierre_nombre, "rb") as f:
         st.download_button("📤 Exportar cierre del día", f, file_name=cierre_nombre)
 
-# Botón para descargar TODO el Excel con todos los datos
+# Descargar todo el Excel
 with open(ARCHIVO, "rb") as f:
     st.download_button(
         label="📥 Descargar todo el Excel con los datos",
