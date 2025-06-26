@@ -13,20 +13,15 @@ if not os.path.exists(ARCHIVO):
 # Cargar datos existentes
 df = pd.read_excel(ARCHIVO)
 
-# Iniciar estado de los campos si no existen
-for campo in ["cliente", "monto"]:
-    if campo not in st.session_state:
-        st.session_state[campo] = ""
-
 # Título
 st.title("💇‍♀️ Control de pagos - Peluquería")
 st.markdown("Ingresá los datos del cliente:")
 
 # Formulario
 with st.form(key="formulario"):
-    cliente = st.text_input("Cliente", key="cliente")
+    cliente = st.text_input("Cliente")
     forma_pago = st.selectbox("Forma de pago", ["Efectivo", "Transferencia"])
-    monto = st.text_input("Monto ($)", key="monto")
+    monto = st.text_input("Monto ($)")
     submit_button = st.form_submit_button(label="Guardar")
 
 if submit_button:
@@ -43,15 +38,15 @@ if submit_button:
             df.to_excel(ARCHIVO, index=False)
             st.success("✅ Datos guardados correctamente")
 
-            # Limpiar campos
-            st.session_state["cliente"] = ""
-            st.session_state["monto"] = ""
+            # Refrescar para limpiar campos
+            st.experimental_set_query_params(refrescar="1")
+
         except ValueError:
             st.error("❌ Monto inválido")
     else:
         st.error("❌ Completá todos los campos")
 
-# Procesar fechas
+# Totales
 df["Fecha y hora"] = pd.to_datetime(df["Fecha y hora"])
 hoy = datetime.now().date()
 mes_actual = datetime.now().month
@@ -59,13 +54,11 @@ mes_actual = datetime.now().month
 df_hoy = df[df["Fecha y hora"].dt.date == hoy]
 df_mes = df[df["Fecha y hora"].dt.month == mes_actual]
 
-# Totales del día
 st.subheader("💰 Totales del día")
 efectivo_dia = df_hoy[df_hoy["Forma de pago"] == "Efectivo"]["Monto"].sum()
 transferencia_dia = df_hoy[df_hoy["Forma de pago"] == "Transferencia"]["Monto"].sum()
 st.write(f"Efectivo: ${efectivo_dia:.2f} | Transferencia: ${transferencia_dia:.2f}")
 
-# Totales del mes
 st.subheader("📅 Total del mes")
 total_mes = df_mes["Monto"].sum()
 st.write(f"Total mensual: ${total_mes:.2f}")
