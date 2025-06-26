@@ -72,7 +72,7 @@ if not df_hoy.empty:
         st.download_button("📤 Exportar cierre del día", f, file_name=cierre_nombre)
 
 # Exportar excel
-    with open(ARCHIVO, "rb") as f:
+with open(ARCHIVO, "rb") as f:
     st.download_button(
         label="📥 Descargar todo el Excel con los datos",
         data=f,
