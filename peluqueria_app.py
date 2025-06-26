@@ -60,3 +60,13 @@ st.write(f"Efectivo: ${efectivo_dia:.2f} | Transferencia: ${transferencia_dia:.2
 st.subheader("📅 Total del mes")
 total_mes = df_mes["Monto"].sum()
 st.write(f"Total mensual: ${total_mes:.2f}")
+
+# Descargar el Excel actualizado
+st.subheader("📥 Descargar reporte")
+with open(ARCHIVO, "rb") as file:
+    st.download_button(
+        label="Descargar Excel con los datos",
+        data=file,
+        file_name="peluqueria.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
