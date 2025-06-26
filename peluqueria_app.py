@@ -55,10 +55,9 @@ if submit_button:
         st.error("❌ Completá todos los campos")
 
 # Convertir la columna a datetime usando formato y zona horaria
-def parse_bsas_fecha(fecha_str):
-    return datetime.strptime(fecha_str, "%d/%m/%Y %H:%M:%S").replace(tzinfo=bsas_tz)
 
-df["Fecha y hora"] = df["Fecha y hora"].apply(parse_bsas_fecha)
+df["Fecha y hora"] = pd.to_datetime(df["Fecha y hora"], format="%d/%m/%Y %H:%M:%S")
+df["Fecha y hora"] = df["Fecha y hora"].dt.tz_localize("America/Argentina/Buenos_Aires")
 
 hoy_bsas = datetime.now(bsas_tz).date()
 mes_actual_bsas = datetime.now(bsas_tz).month
