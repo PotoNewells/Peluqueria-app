@@ -15,12 +15,20 @@ if not os.path.exists(ARCHIVO):
 # Cargar datos existentes
 df = pd.read_excel(ARCHIVO)
 
-# Convertir la columna "Fecha y hora" a datetime con manejo de errores
+# Convertir "Fecha y hora" a datetime con manejo de errores
 df["Fecha y hora"] = pd.to_datetime(df["Fecha y hora"], format="%d/%m/%Y %H:%M:%S", errors="coerce")
 
-# Mostrar advertencia si hay fechas inválidas
-if df["Fecha y hora"].isna().any():
-    st.warning("⚠️ Algunas filas tienen fechas inválidas y no serán consideradas.")
+# Mostrar info debug para ayudarte a entender el contenido actual
+st.write("TIPOS en 'Fecha y hora':", df["Fecha y hora"].apply(type).unique())
+st.write("Primeras filas columna 'Fecha y hora':")
+st.write(df["Fecha y hora"].head(10))
+
+# Eliminar filas sin fecha válida
+df_valid = df.dropna(subset=["Fecha y hora"])
+
+# Mostrar info tras limpieza
+st.write("TIPOS en 'Fecha y hora' tras eliminar filas inválidas:", df_valid["Fecha y hora"].apply(type).unique())
+st.write(df_valid.head())
 
 # Título
 st.title("💇‍♀️ Control de pagos - Peluquería")
@@ -58,8 +66,6 @@ hoy_bsas = ahora_bsas.date()
 mes_actual_bsas = ahora_bsas.month
 
 # Filtrar filas con fechas válidas para hoy y mes actual
-df_valid = df.dropna(subset=["Fecha y hora"])
-
 df_hoy = df_valid[df_valid["Fecha y hora"].dt.date == hoy_bsas]
 df_mes = df_valid[df_valid["Fecha y hora"].dt.month == mes_actual_bsas]
 
