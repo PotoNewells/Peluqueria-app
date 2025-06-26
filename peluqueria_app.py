@@ -18,17 +18,8 @@ df = pd.read_excel(ARCHIVO)
 # Convertir "Fecha y hora" a datetime con manejo de errores
 df["Fecha y hora"] = pd.to_datetime(df["Fecha y hora"], format="%d/%m/%Y %H:%M:%S", errors="coerce")
 
-# Mostrar info debug para ayudarte a entender el contenido actual
-st.write("TIPOS en 'Fecha y hora':", df["Fecha y hora"].apply(type).unique())
-st.write("Primeras filas columna 'Fecha y hora':")
-st.write(df["Fecha y hora"].head(10))
-
 # Eliminar filas sin fecha válida
 df_valid = df.dropna(subset=["Fecha y hora"])
-
-# Mostrar info tras limpieza
-st.write("TIPOS en 'Fecha y hora' tras eliminar filas inválidas:", df_valid["Fecha y hora"].apply(type).unique())
-st.write(df_valid.head())
 
 # Título
 st.title("💇‍♀️ Control de pagos - Peluquería")
@@ -60,20 +51,22 @@ if submit_button:
     else:
         st.error("❌ Completá todos los campos")
 
-# Fecha actual según zona horaria BsAs para filtrar
+# Fecha actual según zona horaria BsAs
 ahora_bsas = datetime.now(bsas_tz)
 hoy_bsas = ahora_bsas.date()
 mes_actual_bsas = ahora_bsas.month
 
-# Filtrar filas con fechas válidas para hoy y mes actual
+# Filtrar datos válidos
 df_hoy = df_valid[df_valid["Fecha y hora"].dt.date == hoy_bsas]
 df_mes = df_valid[df_valid["Fecha y hora"].dt.month == mes_actual_bsas]
 
+# Totales del día
 st.subheader("💰 Totales del día")
 efectivo_dia = df_hoy[df_hoy["Forma de pago"] == "Efectivo"]["Monto"].sum()
 transferencia_dia = df_hoy[df_hoy["Forma de pago"] == "Transferencia"]["Monto"].sum()
 st.write(f"Efectivo: ${efectivo_dia:.2f} | Transferencia: ${transferencia_dia:.2f}")
 
+# Totales del mes
 st.subheader("📅 Total del mes")
 total_mes = df_mes["Monto"].sum()
 st.write(f"Total mensual: ${total_mes:.2f}")
