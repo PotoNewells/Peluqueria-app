@@ -15,9 +15,12 @@ if not os.path.exists(ARCHIVO):
 # Cargar datos existentes
 df = pd.read_excel(ARCHIVO)
 
-# Convertir la columna "Fecha y hora" a datetime con zona horaria
-df["Fecha y hora"] = pd.to_datetime(df["Fecha y hora"], format="%d/%m/%Y %H:%M:%S")
-df["Fecha y hora"] = df["Fecha y hora"].dt.tz_localize("America/Argentina/Buenos_Aires")
+# Convertir la columna "Fecha y hora" a datetime con manejo de errores
+df["Fecha y hora"] = pd.to_datetime(df["Fecha y hora"], format="%d/%m/%Y %H:%M:%S", errors="coerce")
+
+# Mostrar advertencia si hay fechas inválidas
+if df["Fecha y hora"].isna().any():
+    st.warning("⚠️ Algunas filas tienen fechas inválidas y no serán consideradas.")
 
 # Título
 st.title("💇‍♀️ Control de pagos - Peluquería")
@@ -49,11 +52,16 @@ if submit_button:
     else:
         st.error("❌ Completá todos los campos")
 
-hoy_bsas = datetime.now(bsas_tz).date()
-mes_actual_bsas = datetime.now(bsas_tz).month
+# Fecha actual según zona horaria BsAs para filtrar
+ahora_bsas = datetime.now(bsas_tz)
+hoy_bsas = ahora_bsas.date()
+mes_actual_bsas = ahora_bsas.month
 
-df_hoy = df[df["Fecha y hora"].dt.date == hoy_bsas]
-df_mes = df[df["Fecha y hora"].dt.month == mes_actual_bsas]
+# Filtrar filas con fechas válidas para hoy y mes actual
+df_valid = df.dropna(subset=["Fecha y hora"])
+
+df_hoy = df_valid[df_valid["Fecha y hora"].dt.date == hoy_bsas]
+df_mes = df_valid[df_valid["Fecha y hora"].dt.month == mes_actual_bsas]
 
 st.subheader("💰 Totales del día")
 efectivo_dia = df_hoy[df_hoy["Forma de pago"] == "Efectivo"]["Monto"].sum()
