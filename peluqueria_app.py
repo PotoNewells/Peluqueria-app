@@ -14,14 +14,20 @@ if not os.path.exists(ARCHIVO):
 # Cargar datos existentes
 df = pd.read_excel(ARCHIVO)
 
+# Iniciar session_state
+if "cliente" not in st.session_state:
+    st.session_state["cliente"] = ""
+if "monto" not in st.session_state:
+    st.session_state["monto"] = ""
+
 # Formulario de carga
 st.title("💇‍♀️ Control de pagos - Peluquería")
 st.markdown("Ingresá los datos del cliente:")
 
 with st.form(key="formulario"):
-    cliente = st.text_input("Cliente")
+    cliente = st.text_input("Cliente", value=st.session_state["cliente"], key="cliente_input")
     forma_pago = st.selectbox("Forma de pago", ["Efectivo", "Transferencia"])
-    monto = st.text_input("Monto ($)")
+    monto = st.text_input("Monto ($)", value=st.session_state["monto"], key="monto_input")
     submit_button = st.form_submit_button(label="Guardar")
 
 if submit_button:
@@ -37,7 +43,9 @@ if submit_button:
             df = pd.concat([df, pd.DataFrame([nueva_fila])], ignore_index=True)
             df.to_excel(ARCHIVO, index=False)
             st.success("✅ Datos guardados correctamente")
-            st.experimental_rerun()  # Refresca para limpiar campos
+            # Limpiar campos
+            st.session_state["cliente_input"] = ""
+            st.session_state["monto_input"] = ""
         except ValueError:
             st.error("❌ Monto inválido")
     else:
